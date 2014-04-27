@@ -25,12 +25,12 @@ undefined) {
 	render: function() {
 		var view = this;
 
-		var boxes = view.svgContainer
-						.append("path")
-						.attr('d', MapApp.linePathFunction(MapApp.getPolyData()))
-						.attr('stroke', 'blue')
-						.attr('stroke-width', 2)
-						.attr('fill', 'none');
+		view.svgContainer
+			.append("path")
+			.attr('d', MapApp.linePathFunction(MapApp.getPointData()))
+			.attr('stroke', 'blue')
+			.attr('stroke-width', 2)
+			.attr('fill', 'none');
 
 		return view;
 	}

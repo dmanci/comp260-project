@@ -11,14 +11,24 @@ define('data/app', [
 undefined) {
  var DataApp = Backbone.Model.extend({
 	initialize: function() {
-		var app = this;
+		var data = this;
+
+		data._testData = [
+			{
+				x: 0,
+				y: 0
+			},
+			{
+				x: 200,
+				y: 200
+			}
+		];
 	},
 
 	getTestData: function() {
-		return [
-			{ x: 0, y: 0 },
-			{ x: 200, y: 200 }
-		];
+		var data = this;
+
+		return data._testData;
 	}
  });
 

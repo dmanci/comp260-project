@@ -21,7 +21,7 @@ undefined) {
 				.interpolate("linear").call(app, args);
 	},
 	
-	getPolyData: function() {
+	getPointData: function() {
 		var app = this;
 
 		return DataApp.getTestData();

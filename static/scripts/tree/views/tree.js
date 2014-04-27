@@ -10,6 +10,14 @@ define('tree/views/tree', [
 	D3,
 undefined) {
  var TreeView = Backbone.View.extend({
+	initialize: function() {
+		var view = this;
+		
+		view.layout = d3.layout.tree();
+
+		return view;
+	},
+
 	render: function() {
 
 		
