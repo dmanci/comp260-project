@@ -16,7 +16,7 @@ undefined) {
 		var object = this;
 
 		object.points = points;
-		_setBorders();
+		object._setBorders();
 	},
 
 	_setBorders: function() {
@@ -51,5 +51,5 @@ undefined) {
 	}
  });
 
- return new SpatialObject();
+ return SpatialObject;
 });
