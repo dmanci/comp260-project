@@ -80,94 +80,130 @@ undefined) {
 	 _splitNode: function(node, useQuadratic) {
 		var app = this;
 
-		var indexes = node.getIndexes();
-		var records = app.retrieveRecords(indexes);
-
-		var pickSeeds = useQuadratic ? app._quadraticPickSeeds : app._linearPickSeeds;
-
-		var seeds = pickSeeds(records);
-
-		var leaf1 = new LeafApp([seeds[0]]);
-		var leaf2 = new LeafApp([seeds[1]]);
-
-		var rest = _.reject(records, function(record) {
-			return record.index !== seeds[0].index
-				&& record.index !== seeds[1].index;
-		});
-		while (rest.length > 0) {
-			if (leaf1
+		// Allow for the optional use of the quadratic algorithm.
+		var pickSeeds;
+		var pickNext;
+		if (useQuadratic) {
+			pickSeeds = app._quadraticPickSeeds;
+			pickNext = app._quadraticPickNext;
 		}
+		else {
+			pickSeeds = app._linearPickSeeds;
+			pickNext = app._linearPickNext;
+		}
+
+		var entries = node.entries();
+
+		// Pick seed entries for the two new nodes.
+		// A split node can be a leaf or internal. This simply allows for constructing
+		// the appropriate node type, which gives us node-type predicate methods.
+		var seeds = pickSeeds(entries);
+		var nodeApp = node.isLeaf ? LeafApp : InternalApp;
+		var node1 = new nodeApp([seeds[0]]);
+		var node2 = new nodeApp([seeds[1]]);
+
+		// Partition the rest of the entries into the groups.
+		var rest = _.reject(entries, function(entry) {
+			return entry === seeds[0] || entry === seeds[1];
+		});
+		pickNext({
+			node1: node1,
+			node2: node2,
+			remainingEntries: rest
+		});
+
+		return {
+			node1: node1,
+			node2: node2 
+		};
 	 },
 
-	 _linearPickSeeds: function(records) {
+	 _linearPickNext: function(args) {
+		var app = this;
+
+		var node1 = args.node1;
+		var node2 = args.node2;
+		var rest = args.rest;
+
+		for (i = 0; i < rest.length; i++) {
+			remaining % 2 ? node1.addEntry(rest[i]) : node2.addEntry(rest[i]);
+		}
+
+		return;
+	 },
+
+	 _linearPickSeeds: function(entries) {
 		var app = this;
 
 		// Find the greatest separation on the Y-axis.
-		var highestBottomSeed = _.max(records, function(record) {
-			return record.bottommost();
+		var highestBottomEntry = _.max(entries, function(entry) {
+			return entry.boundingBox().bottommost();
 		});
 
-		var lowestTopSeed = _.min(records, function(record) {
-			return record.topmost();
+		var lowestTopEntry = _.min(entries, function(entry) {
+			return entry.boundingBox().topmost();
 		});
 
-		ySeparation = highestBottomSeed.bottommost - lowestTopSeed.topmost;
+		ySeparation = 	highestBottomEntry.boundingBox().bottommost()
+						- lowestTopEntry.boundingBox().topmost();
 
 		// Find the greatest separation on the X-axis.
-		var maxLeftSeed = _.max(records, function(record) {
-			return record.leftmost();
+		var maxLeftEntry = _.max(entries, function(entry) {
+			return entry.boundingBox().leftmost();
 		});
 
-		var minRightSeed = _.min(records, function(record) {
-			return record.rightmost();
+		var minRightEntry = _.min(entries, function(entry) {
+			return entry.boundingBox().rightmost();
 		});
 
-		xSeparation = maxLeftSeed.leftmost() - minRightSeed.rightmost();
+		xSeparation = 	maxLeftEntry.boundingBox().leftmost()
+						- minRightEntry.boundingBox().rightmost();
 
 		// Normalize the separations and pick the most extreme one.
-		var yNormalized = ySeparation / app._findHeight(records);
-		var xNormalized = xSeparation / app._findWidth(records);
+		var yNormalized = ySeparation / app._findHeight(entries);
+		var xNormalized = xSeparation / app._findWidth(entries);
 
 		var seeds 	= yNormalized > xNormalized
-					? [ highestBottomSeed, lowestTopSeed ]
-					: [ maxLeftSeed, minRightSeed ];
+					? [ highestBottomEntry, lowestTopEntry ]
+					: [ maxLeftEntry, minRightEntry ];
 
 		return seeds;
 	 },
 
-	_findHeight: function(records) {
+	_findHeight: function(entries) {
 		var app = this;
 
-		var topmostRecord = _.max(records, function(record) {
-			return record.topmost();
+		var topmostEntry = _.max(entries, function(entry) {
+			return entry.boundingBox().topmost();
 		});
 
-		var bottommostRecord = _.min(records, function(record) {
-			return record.bottommost();
+		var bottommostEntry = _.min(entries, function(entry) {
+			return entry.boundingBox().bottommost();
 		});
 
-		return topmostRecord.topmost() - bottommostRecord.bottommost();
+		return 	topmostEntry.boundingBox().topmost()
+				- bottommostEntry.boundingBox().bottommost();
 	},
 
-	_findWidth: function(records) {
+	_findWidth: function(entries) {
 		var app = this;
 
-		var rightmostRecord = _.max(records, function(record) {
-			return record.rightmost();
+		var rightmostEntry = _.max(entries, function(entry) {
+			return entry.boundingBox().rightmost();
 		});
 
-		var leftmostRecord = _.min(records, function(record) {
-			return record.leftmost();
+		var leftmostEntry = _.min(entries, function(entry) {
+			return entry.boundingBox().leftmost();
 		});
 
-		return rightmostRecord.rightmost() - leftmostRecord.leftmost();
+		return 	rightmostEntry.boundingBox().rightmost()
+				- leftmostEntry.boundingBox().leftmost();
 	},
 
 	 _installEntry: function(entry, leaf) {
 		var app = this;
 
-		var record = app.createTreeData([entry])[0];
-		leaf.addRecordIndex(record.index);
+		leaf.addEntry(entry);
 	 },
 
 	 _nodeHasRoom: function(node) {
