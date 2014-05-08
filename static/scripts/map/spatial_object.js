@@ -30,6 +30,17 @@ undefined) {
 		return;
 	},
 
+	points: function(points) {
+		var app = this;
+
+		if (points) {
+			object.points = points;
+			object._setBorders();
+		}
+
+		return object.points;
+	},
+
 	leftmost: function() {
 		var object = this;
 		return object._leftmost;

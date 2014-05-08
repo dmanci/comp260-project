@@ -4,8 +4,11 @@ define('tree/app', [
 	'backbone',
 	'd3',
 	'data/app',
-	'tree/box/bounding_box',
-	'tree/record'
+	'map/spatial_object/bounding_box',
+	'tree/record',
+	'tree/entry',
+	'tree/node',
+	'tree/node/leaf'
 ], function(
 	$,
 	_,
@@ -14,6 +17,9 @@ define('tree/app', [
 	DataApp,
 	BoundingBoxApp,
 	RecordApp,
+	EntryApp,
+	NodeApp,
+	LeafApp,
 undefined) {
  var TreeApp = Backbone.Model.extend({
 	 initialize: function(M, m) {
@@ -69,12 +75,33 @@ undefined) {
 		}
 
 		// Adjust the tree starting at the leaf/leaves.
-		app._adjustTree(insertionLeaf, newLeaf);
+		var adjustedRoots = app._adjustTree(insertionLeaf, newLeaf);
 
 		// Make the tree taller if adjustTree caused root to split.
-		if (app._isRootSplit) {
-			app._growTaller(root, splitRoot);
+		var root = adjustedRoots.root;
+		if (adjustedRoots.splitRoot) {
+			root = app._growTaller(adjustedRoots.root, adjustedRoots.splitRoot);
 		}
+
+		return root;
+	 },
+
+	 _growTaller: function(root1, root2) {
+		var app = this;
+
+		var rootEntry1 = new EntryApp({
+			childNode: root1,
+			boundingBox: app._expandBoxOverEntries(root1.entries())
+		});
+
+		var rootEntry2 = new EntryApp({
+			childNode: root2,
+			boundingBox: app._expandBoxOverEntries(root2.entries())
+		});
+
+		return new NodeApp({
+			entries: [ rootEntry1, rootEntry2 ]
+		});
 	 },
 
 	 _splitNode: function(node, useQuadratic) {
@@ -98,9 +125,17 @@ undefined) {
 		// A split node can be a leaf or internal. This simply allows for constructing
 		// the appropriate node type, which gives us node-type predicate methods.
 		var seeds = pickSeeds(entries);
-		var nodeApp = node.isLeaf ? LeafApp : InternalApp;
-		var node1 = new nodeApp([seeds[0]]);
-		var node2 = new nodeApp([seeds[1]]);
+		var nodeApp = node.isLeaf ? LeafApp : NodeApp;
+		var node1 = new nodeApp({
+			entries: [seeds[0]],
+			parentEntry: node.parentEntry(),
+			parentNode: node.parentNode()
+		});
+		var node2 = new nodeApp({
+			entries: [seeds[1]],
+			parentEntry: node.parentEntry(),
+			parentNode: node.parentNode()
+		});
 
 		// Partition the rest of the entries into the groups.
 		var rest = _.reject(entries, function(entry) {
@@ -229,7 +264,7 @@ undefined) {
 				var boundingBox = childEntry.boundingBox();
 				var boundingBoxArea = boundingBox.getArea();
 				
-				var expandedBox = app._expandBox(boundingBox, entry);
+				var expandedBox = app._expandBoxOverEntries(boundingBox, [childEntry]);
 				var expandedBoxArea = expandedBox.getArea();
 				var areaChange = expandedBoxArea - boundingBoxArea;
 
@@ -255,26 +290,61 @@ undefined) {
 		return _chooseLeaf(entry, chosenNode);
 	 },
 
-	 _expandBox: function(boundingBox, spatialObject) {
+	 _entriesToPoints: function(entries) {
 		var app = this;
 
-		var expandedBox = new BoundingBoxApp();
-		expandedBox.box($.clone(boundingBox.box()));
+		var entryPoints = [];
+		return _.each(entries, function(entry) {
+			_.union(entry.boundingBox().points(), entryPoints);
+		});
+	 },
 
-		if (spatialObject.leftmost() < boundingBox.leftmost()) {
-			expandedBox.expandLeft(spatialObject.leftmost());
+	 _expandBoxOverEntries: function(entries) {
+		var app = this;
+
+		var entryPoints = app._entriesToPoints(entries);
+		return new BoundingBoxApp(entryPoints);
+	 },
+
+	 _adjustTree: function(node1, node2) {
+		var app = this;
+
+		if (node1._isRoot()) {
+			return {
+				root: node1,
+				splitRoot: node2
+			};
 		}
-		if (spatialObject.rightmost() > boundingBox.rightmost()) {
-			expandedBox.expandRight(spatialObject.rightmost());
-		}
-		if (spatialObject.topmost() > boundingBox.topmost()) {
-			expandedBox.expandUp(spatialObject.topmost());
-		}
-		if (spatialObject.bottommost() < boundingBox.bottommost()) {
-			expandedBox.expandDown(spatialObject.bottommost());
+		else {
+			// Adjust the parent entry's box so it tightly encloses all entries
+			// in node1.
+			var expandedParentBox = app._expandBoxOverEntries(node1.entries());
+			node1.parentEntry().boundingBox(expandedParentBox);
+
+			// Propagate a node split upward.
+			if (node2) {
+				// Creat a new parent entry that points to the new node and has
+				// a bounding box containing all entries in the new node.
+				var splitEntry = new EntryApp({
+					childNode: node2,
+					boundingBox: app._expandBoxOverEntries(node2.entries())
+				});
+
+				// If node1's parent has room, add node2's parent entry to that.
+				// Otherwise, split node1's parent and add it to that.
+				var parentNode = node1.parentNode();
+				var newArgs;
+				if (app._nodeHasRoom(parentNode)) {
+					parentNode.addEntry(splitEntry);
+					newArgs = [parentNode];
+				}
+				else {
+					newArgs = _.values(app._splitNode(parentNode));
+				}
+			}
 		}
 
-		return expandedBox;
+		return app._adjustTree.apply(app, newArgs);
 	 }
 
  });
