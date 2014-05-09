@@ -26,7 +26,8 @@ undefined) {
 		var app = this;
 
 		app.highestIndex = 0;
-		app.records = app.createRecords(DataApp.getTestData());
+		app.records = {};
+		app.createRecords(DataApp.getTestData());
 		app.M = M;
 		app.m = m;
 	 },
@@ -36,12 +37,12 @@ undefined) {
 
 		// For each polygon definition, create a "database record"
 		// of a retrieval index and the data point.
-		var database;
+		var database = {};
 
 		_.each(data, function(dataElement) {
 			record = new RecordApp(app.highestIndex++, dataElement);
 			_.extend(database, record);
-			addRecord(record);
+			app.addRecord(record);
 		});
 
 		return database;

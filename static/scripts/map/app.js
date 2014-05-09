@@ -12,15 +12,6 @@ define('map/app', [
 	DataApp,
 undefined) {
  var MapApp = Backbone.Model.extend({
-	linePathFunction: function(args) {
-		var app = this;
-
-		return D3.svg.line()
-				.x(function(d) { return d.x; })
-				.y(function(d) { return d.y; })
-				.interpolate("linear").call(app, args);
-	},
-	
 	getPointData: function() {
 		var app = this;
 

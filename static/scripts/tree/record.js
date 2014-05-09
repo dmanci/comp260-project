@@ -15,13 +15,13 @@ undefined) {
 	initialize: function(dataElement) {
 		var app = this;
 		
-		app.record = createRecord(dataElement);
+		app.record = app.createRecord(dataElement);
 	},
 
 	 createRecord: function(index, dataElement) {
 		var app = this;
 
-		var record;
+		var record = {};
 		record[index] = new SpatialObject(dataElement);
 		return record;
 	 },
