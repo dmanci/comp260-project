@@ -22,50 +22,43 @@ define('tree/app', [
 	LeafApp,
 undefined) {
  var TreeApp = Backbone.Model.extend({
-	 initialize: function(M, m) {
+	initialize: function() {
 		var app = this;
 
-		app.highestIndex = 0;
-		app.records = {};
-		app.createRecords(DataApp.getTestData());
-		app.M = M;
-		app.m = m;
-	 },
+		app.set('root', new NodeApp());
+	},
 
-	 createRecords: function(data) {
+	constructTree: function(records) {
 		var app = this;
 
-		// For each polygon definition, create a "database record"
-		// of a retrieval index and the data point.
-		var database = {};
+		var simpleRecords = DataApp.simpleRecordList(records);
+		var entries = app.recordsToEntries(simpleRecords);
+		_.each(entries, function(entry) {
+			app.insertEntry(entry);
+		});
+	},
 
-		_.each(data, function(dataElement) {
-			record = new RecordApp(app.highestIndex++, dataElement);
-			_.extend(database, record);
-			app.addRecord(record);
+	// records - list of [key, value] pairs
+	recordsToEntries: function(simpleRecords) {
+		var app = this;
+
+		var entries = [];
+		_.each(simpleRecords, function(record) {
+			debugger;
+			entries.push(new EntryApp({
+				boundingBox: new BoundingBoxApp(record.spatialObject.points()),
+				recordId: record.index
+			}));
 		});
 
-		return database;
-	 },
+		return entries;
+	},
 
-	 addRecord: function(record) {
-		var app = this;
-
-		_.extend(app.records, record);
-	 },
-
-	 retrieveRecords: function(indexes) {
-		var app = this;
-
-		// Get the records from the datastore.
-		return _.pick(app.records, indexes);
-	 },
-
-	 insertEntry: function(entry) {
+	insertEntry: function(entry) {
 		var app = this;
 		
 		// Find the insertion point.
-		var insertionLeaf = app._chooseLeaf(entry, app.tree);
+		var insertionLeaf = app._chooseLeaf(entry, app.get('root'));
 
 		// If leaf has room, insert. Otherwise, split the node.
 		if (app._nodeHasRoom(insertionLeaf)) {
@@ -85,9 +78,9 @@ undefined) {
 		}
 
 		return root;
-	 },
+	},
 
-	 _growTaller: function(root1, root2) {
+	_growTaller: function(root1, root2) {
 		var app = this;
 
 		var rootEntry1 = new EntryApp({
@@ -103,9 +96,9 @@ undefined) {
 		return new NodeApp({
 			entries: [ rootEntry1, rootEntry2 ]
 		});
-	 },
+	},
 
-	 _splitNode: function(node, useQuadratic) {
+	_splitNode: function(node, useQuadratic) {
 		var app = this;
 
 		// Allow for the optional use of the quadratic algorithm.
@@ -152,9 +145,9 @@ undefined) {
 			node1: node1,
 			node2: node2 
 		};
-	 },
+	},
 
-	 _linearPickNext: function(args) {
+	_linearPickNext: function(args) {
 		var app = this;
 
 		var node1 = args.node1;
@@ -166,9 +159,9 @@ undefined) {
 		}
 
 		return;
-	 },
+	},
 
-	 _linearPickSeeds: function(entries) {
+	_linearPickSeeds: function(entries) {
 		var app = this;
 
 		// Find the greatest separation on the Y-axis.
@@ -204,7 +197,7 @@ undefined) {
 					: [ maxLeftEntry, minRightEntry ];
 
 		return seeds;
-	 },
+	},
 
 	_findHeight: function(entries) {
 		var app = this;
@@ -236,20 +229,20 @@ undefined) {
 				- leftmostEntry.boundingBox().leftmost();
 	},
 
-	 _installEntry: function(entry, leaf) {
+	_installEntry: function(entry, leaf) {
 		var app = this;
 
 		leaf.addEntry(entry);
-	 },
+	},
 
-	 _nodeHasRoom: function(node) {
+	_nodeHasRoom: function(node) {
 		var app = this;
 
 		return node.numberOfEntries() < app.M;
-	 },
+	},
 
 	// TODO: Make iterative.
-	 _chooseLeaf: function(entry, node) {
+	_chooseLeaf: function(entry, node) {
 		var app = this;
 		
 		if (node.isLeaf()) {
@@ -289,25 +282,25 @@ undefined) {
 		
 		// Try to insert into the next node down the tree.
 		return _chooseLeaf(entry, chosenNode);
-	 },
+	},
 
-	 _entriesToPoints: function(entries) {
+	_entriesToPoints: function(entries) {
 		var app = this;
 
 		var entryPoints = [];
 		return _.each(entries, function(entry) {
 			_.union(entry.boundingBox().points(), entryPoints);
 		});
-	 },
+	},
 
-	 _expandBoxOverEntries: function(entries) {
+	_expandBoxOverEntries: function(entries) {
 		var app = this;
 
 		var entryPoints = app._entriesToPoints(entries);
 		return new BoundingBoxApp(entryPoints);
-	 },
+	},
 
-	 _adjustTree: function(node1, node2) {
+	_adjustTree: function(node1, node2) {
 		var app = this;
 
 		if (node1._isRoot()) {
@@ -346,9 +339,9 @@ undefined) {
 		}
 
 		return app._adjustTree.apply(app, newArgs);
-	 }
+	}
 
  });
 
- return TreeApp;
+ return new TreeApp();
 });

@@ -3,31 +3,35 @@ define('map/views/polygon', [
 	'underscore',
 	'backbone',
 	'd3',
+	'view',
 	'map/app'
 ], function(
 	$,
 	_,
 	Backbone,
 	D3,
+	View,
 	MapApp,
 undefined) {
- var PolygonView = Backbone.View.extend({
+ var PolygonView = View.extend({
 	initialize: function() {
 		var view = this;
-
-		view.$el = D3.select("#map-container");
+		View.prototype.initialize.apply(view, arguments);
 
 		view.svgContainer = view.$el.append("svg")
-			.attr("width", 200)
-			.attr("height", 200);
+			.attr("width", 600)
+			.attr("height", 600);
+
+		return view;
 	},
 
 	render: function() {
 		var view = this;
 
+		var points = view.model.get('pointSets');
 		view.svgContainer
 			.append("path")
-			.attr('d', view.linePathFunction(MapApp.getPointData()))
+			.attr('d', view.linePathFunction(points))
 			.attr('stroke', 'blue')
 			.attr('stroke-width', 2)
 			.attr('fill', 'none');

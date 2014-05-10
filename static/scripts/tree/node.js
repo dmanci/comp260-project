@@ -13,10 +13,15 @@ undefined) {
 	initialize: function(args) {
 		var app = this;
 
-		app.entries = args.entries || [];
+		app.entries = [];
+
+		if (args) {
+			app.entries = args.entries;
+			app.parentEntry = args.parentEntry;
+			app.parentNode = args.parentNode;
+		}
+
 		app.numberOfEntries = app.entries.length;
-		app.parentEntry = args.parentEntry;
-		app.parentNode = args.parentNode;
 	},
 
 	numberOfEntries: function() {

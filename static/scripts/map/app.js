@@ -15,7 +15,7 @@ undefined) {
 	getPointData: function() {
 		var app = this;
 
-		return DataApp.getTestData();
+		return DataApp.get('pointSets');
 	}
  });
 
