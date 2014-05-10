@@ -13,52 +13,20 @@ undefined) {
 	initialize: function(args) {
 		var app = this;
 
-		app.boundingBox = args.boundingBox;
-		args.childNode ? childNode(args.childNode) : recordId(args.recordId);
-	},
-
-	childNode: function(childNode) {
-		var app = this;
-
-		if (childNode) {
-			app.childNode = childNode;
-			app.recordId = undefined;
-		}
-
-		return app.childNode;
-	},
-
-	recordId: function(recordId) {
-		var app = this;
-
-		if (recordId) {
-			app.recordId = recordId;
-			app.childNode = undefined;
-		}
-
-		return app.recordId;
+		app.set('boundingBox', args.boundingBox);
+		args.childNode ? app.set('childNode', args.childNode) : app.set('recordId', args.recordId);
 	},
 
 	isRecordEntry: function() {
 		var app = this;
 
-		return !_.isUndefined(app.recordId);
+		return !_.isUndefined(app.get('recordId'));
 	},
 
 	isParentEntry: function() {
 		var app = this;
 
-		return !_.isUndefined(app.childNode);
-	},
-
-	boundingBox: function(boundingBox) {
-		var app = this;
-
-		if (boundingBox) {
-			app.boundingBox = boundingBox;
-		}
-
-		return app.boundingBox;
+		return !_.isUndefined(app.get('childNode'));
 	}
 
  });

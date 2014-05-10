@@ -17,16 +17,15 @@ undefined) {
 	initialize: function() {
 		var data = this;
 
-		data.set('records', data.createRecords(data.pointSets));
+		data.set('records', data.createRecords(data.get('pointSets')));
 	},
 
 	defaults: {
-		pointSets: 
-			[
-				{ "x": 1,   "y": 5},  { "x": 20,  "y": 20},
-				{ "x": 40,  "y": 10}, { "x": 60,  "y": 40},
-				{ "x": 80,  "y": 5},  { "x": 100, "y": 60}
-			],
+		pointSets: [
+				[ { "x": 1,   "y": 5}, { "x": 20,  "y": 20} ], 
+				[ { "x": 40,  "y": 10}, { "x": 60,  "y": 40} ],
+				[ { "x": 80,  "y": 5}, { "x": 100, "y": 60} ]
+		],
 		highestIndex: 0
 	},
 
@@ -37,6 +36,7 @@ undefined) {
 		// of a retrieval index and the data point.
 		var database = {};
 
+		pointSets = pointSets || data.get('pointSets');
 		_.each(pointSets, function(pointSet) {
 			_.extend(database, data.createRecord(pointSet));
 		});
@@ -47,11 +47,10 @@ undefined) {
 	createRecord: function(pointSet) {
 		var data = this;
 
-debugger;
 		var nextIndex = data.get('highestIndex');
-		data.set('highestIndex', nextIndex);
+		data.set('highestIndex', ++nextIndex);
 
-		var record;
+		var record = {};
 		var indexStr = nextIndex.toString();
 		record[indexStr] = { spatialObject: new SpatialObject(pointSet) };
 

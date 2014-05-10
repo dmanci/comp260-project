@@ -13,51 +13,63 @@ undefined) {
 	initialize: function(args) {
 		var app = this;
 
-		app.entries = [];
+		app.set('entries', []);
 
 		if (args) {
-			app.entries = args.entries;
-			app.parentEntry = args.parentEntry;
-			app.parentNode = args.parentNode;
+			app.set({
+				entries: args.entries,
+				parentEntry: args.parentEntry,
+				parentNode: args.parentNode
+			});
 		}
 
-		app.numberOfEntries = app.entries.length;
+		var entries = app.get('entries');
+		app.set('numberOfEntries', entries.length);
 	},
 
 	numberOfEntries: function() {
 		var app = this;
-		return app.numberOfEntries;
+		return app.get('numberOfEntries');
 	},
 
 	addEntry: function(entry) {
 		var app = this;
 
-		app.entries.push(entry);
-		app.numberOfEntries++;
+		var entries = app.get('entries');
+		entries.push(entry);
+		app.set('entries', entries);
+		var numberOfEntries = app.get('numberOfEntries');
+		app.set('numberOfEntries', ++numberOfEntries);
 	},
 
 	entries: function() {
 		var app = this;
 
-		return app.entries;
+		return app.get('entries');
 	},
 
 	parentEntry: function(parentEntry) {
 		var app = this;
 
 		if (parentEntry) {
-			app.parentEntry = parentEntry;
+			app.set('parentEntry', parentEntry);
 		}
-		return app.parentEntry;
+		return app.get('parentEntry');
 	},
 
 	parentNode: function(parentNode) {
 		var app = this;
 
 		if (parentNode) {
-			app.parentNode = parentNode;
+			app.set('parentNode', parentNode);
 		}
-		return app.parentNode;
+		return app.get('parentNode');
+	},
+
+	isRoot: function() {
+		var app = this;
+
+		return _.isUndefined(app.get('parentEntry')) && _.isUndefined(app.get('parentNode'));
 	}
  });
 

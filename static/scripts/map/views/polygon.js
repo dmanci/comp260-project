@@ -28,13 +28,15 @@ undefined) {
 	render: function() {
 		var view = this;
 
-		var points = view.model.get('pointSets');
-		view.svgContainer
-			.append("path")
-			.attr('d', view.linePathFunction(points))
-			.attr('stroke', 'blue')
-			.attr('stroke-width', 2)
-			.attr('fill', 'none');
+		var pointSets = view.model.get('pointSets');
+		_.each(pointSets, function(pointSet) {
+			view.svgContainer
+				.append("path")
+				.attr('d', view.linePathFunction(pointSet))
+				.attr('stroke', 'blue')
+				.attr('stroke-width', 2)
+				.attr('fill', 'none');
+		});
 
 		return view;
 	},

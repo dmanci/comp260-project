@@ -12,33 +12,23 @@ define('map/spatial_object', [
 	MapApp,
 undefined) {
  var SpatialObject = Backbone.Model.extend({
-	initialize: function(points) {
+	initialize: function(pointSet) {
 		var object = this;
 
-		object.points = points;
+		object.set('pointSet', pointSet);
 		object._setBorders();
 	},
 
 	_setBorders: function() {
 		var object = this;
 
-		object._leftmost = _.min(object.points, function(point) { return point.x; });
-		object._righmost = _.max(object.points, function(point) { return point.x; });
-		object._topmost = _.max(object.points, function(point) { return point.y; });
-		object._bottommost = _.min(object.points, function(point) { return point.y; });
+		var pointSet = object.get('pointSet');
+		object._leftmost = _.min(pointSet, function(point) { return point.x; });
+		object._righmost = _.max(pointSet, function(point) { return point.x; });
+		object._topmost = _.max(pointSet, function(point) { return point.y; });
+		object._bottommost = _.min(pointSet, function(point) { return point.y; });
 
 		return;
-	},
-
-	points: function(points) {
-		var app = this;
-
-		if (points) {
-			object.points = points;
-			object._setBorders();
-		}
-
-		return object.points;
 	},
 
 	leftmost: function() {

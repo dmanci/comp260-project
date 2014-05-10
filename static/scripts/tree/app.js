@@ -22,20 +22,23 @@ define('tree/app', [
 	LeafApp,
 undefined) {
  var TreeApp = Backbone.Model.extend({
-	initialize: function() {
-		var app = this;
-
-		app.set('root', new NodeApp());
+	defaults: {
+		root: new LeafApp(),
+		M: 10,
+		m: 5
 	},
 
 	constructTree: function(records) {
 		var app = this;
 
-		var simpleRecords = DataApp.simpleRecordList(records);
+		var simpleRecords = DataApp.simpleRecordList();
 		var entries = app.recordsToEntries(simpleRecords);
 		_.each(entries, function(entry) {
 			app.insertEntry(entry);
 		});
+
+		debugger;
+		return app.get('root');
 	},
 
 	// records - list of [key, value] pairs
@@ -44,14 +47,19 @@ undefined) {
 
 		var entries = [];
 		_.each(simpleRecords, function(record) {
-			debugger;
 			entries.push(new EntryApp({
-				boundingBox: new BoundingBoxApp(record.spatialObject.points()),
+				boundingBox: new BoundingBoxApp(record.spatialObject.get('pointSet')),
 				recordId: record.index
 			}));
 		});
 
 		return entries;
+	},
+
+	toJSON: function(root) {
+		var app = this;
+
+		var rootNode = root || app.get('root');
 	},
 
 	insertEntry: function(entry) {
@@ -77,7 +85,7 @@ undefined) {
 			root = app._growTaller(adjustedRoots.root, adjustedRoots.splitRoot);
 		}
 
-		return root;
+		return;
 	},
 
 	_growTaller: function(root1, root2) {
@@ -238,7 +246,7 @@ undefined) {
 	_nodeHasRoom: function(node) {
 		var app = this;
 
-		return node.numberOfEntries() < app.M;
+		return node.numberOfEntries() < app.get('M');
 	},
 
 	// TODO: Make iterative.
@@ -303,7 +311,7 @@ undefined) {
 	_adjustTree: function(node1, node2) {
 		var app = this;
 
-		if (node1._isRoot()) {
+		if (node1.isRoot()) {
 			return {
 				root: node1,
 				splitRoot: node2

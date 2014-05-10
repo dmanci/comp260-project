@@ -26,9 +26,8 @@ undefined) {
 	constructBox: function(points) {
 		var app = this;
 
-		points  = points || app.points();
 		app.box = app.minimumBoundingBox();
-		app.points(app.boxObjectToArray());
+		app.set('pointSet', app.boxObjectToArray());
 	},
 
 	minimumBoundingBox: function() {

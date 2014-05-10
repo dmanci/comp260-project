@@ -29,13 +29,9 @@ undefined) {
 			]
 		};
 
-		TreeApp.set({
-			M: 10,
-			m: 5
-		});
-
 		view.records = view.model.get('records');
 		TreeApp.constructTree(view.records);
+		view.root = TreeApp.toJSON();
 
 		view.render();
 		return view;
