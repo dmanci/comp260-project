@@ -27,6 +27,16 @@ undefined) {
 		var app = this;
 
 		return !_.isUndefined(app.get('childNode'));
+	},
+
+	boundingBox: function(boundingBox) {
+		var app = this;
+
+		if (boundingBox) {
+			app.set('boundingBox', boundingBox);
+		}
+
+		return app.get('boundingBox');
 	}
 
  });

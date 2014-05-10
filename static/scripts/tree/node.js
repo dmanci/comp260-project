@@ -10,21 +10,15 @@ define('tree/node', [
 	D3,
 undefined) {
  var NodeApp = Backbone.Model.extend({
-	initialize: function(args) {
+	initialize: function() {
 		var app = this;
-
-		app.set('entries', []);
-
-		if (args) {
-			app.set({
-				entries: args.entries,
-				parentEntry: args.parentEntry,
-				parentNode: args.parentNode
-			});
-		}
 
 		var entries = app.get('entries');
 		app.set('numberOfEntries', entries.length);
+	},
+
+	defaults: {
+		entries:  []
 	},
 
 	numberOfEntries: function() {
@@ -70,7 +64,9 @@ undefined) {
 		var app = this;
 
 		return _.isUndefined(app.get('parentEntry')) && _.isUndefined(app.get('parentNode'));
-	}
+	},
+
+	isLeaf: function() { return false; }
  });
 
  return NodeApp;

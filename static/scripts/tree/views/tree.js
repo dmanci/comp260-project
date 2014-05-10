@@ -4,7 +4,8 @@ define('tree/views/tree', [
 	'backbone',
 	'd3',
 	'view',
-	'tree/app'
+	'tree/app',
+	'tree/node'
 ], function(
 	$,
 	_,
@@ -12,6 +13,7 @@ define('tree/views/tree', [
 	D3,
 	View,
 	TreeApp,
+	NodeApp,
 undefined) {
  var TreeView = View.extend({
 	initialize: function() {
@@ -29,9 +31,7 @@ undefined) {
 			]
 		};
 
-		view.records = view.model.get('records');
-		TreeApp.constructTree(view.records);
-		view.root = TreeApp.toJSON();
+		TreeApp.constructTree(view.model.get('records'));
 
 		view.render();
 		return view;
@@ -47,7 +47,8 @@ undefined) {
 
 	setTree: function() {
 		var view = this;
-		var tree = view.layout;
+		var tree = view.layout
+			.children(view.childrenAccessor);
 
 		var diagonal = D3.svg.diagonal();
 
@@ -57,7 +58,7 @@ undefined) {
 			.append("g")
 				.attr("transform", "translate(50, 50)");
 
-		var nodes = tree.nodes(view.treeData);
+		var nodes = tree.nodes(TreeApp.get('root'));
 		var links = tree.links(nodes);
 		
 		var link = svg.selectAll('path.link')
@@ -85,9 +86,36 @@ undefined) {
 			.attr('text-anchor', function(d) {
 				return d.children ? "end" : "start";
 			})
-			.text(function(d) {
-				return d.name;
-			});
+			.text(view.nodeText);
+	},
+
+	childrenAccessor: function(nodeOrEntry) {
+		var view = this;
+
+		var children = nodeOrEntry.get('entries') || nodeOrEntry.get('childNode');
+		children = children instanceof NodeApp ? [ children ] : children;
+
+		return children;
+	},
+
+	nodeText: function(node) {
+		var view = this;
+
+		var text;
+		var recordId = node.get('recordId');
+		if (recordId) {
+			text = recordId;
+		}
+		else if (node.isRoot()) {
+			text = "Root";
+		}
+		else if (node.isLeaf()) {
+			text = "Leaf";
+		}
+		else {
+			text = "Node";
+		}
+		return text;
 	}
  });
 

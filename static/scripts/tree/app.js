@@ -24,8 +24,8 @@ undefined) {
  var TreeApp = Backbone.Model.extend({
 	defaults: {
 		root: new LeafApp(),
-		M: 10,
-		m: 5
+		M: 4,
+		m: 2
 	},
 
 	constructTree: function(records) {
@@ -37,7 +37,6 @@ undefined) {
 			app.insertEntry(entry);
 		});
 
-		debugger;
 		return app.get('root');
 	},
 
@@ -56,12 +55,6 @@ undefined) {
 		return entries;
 	},
 
-	toJSON: function(root) {
-		var app = this;
-
-		var rootNode = root || app.get('root');
-	},
-
 	insertEntry: function(entry) {
 		var app = this;
 		
@@ -69,15 +62,17 @@ undefined) {
 		var insertionLeaf = app._chooseLeaf(entry, app.get('root'));
 
 		// If leaf has room, insert. Otherwise, split the node.
+		var insertionLeaves;
 		if (app._nodeHasRoom(insertionLeaf)) {
 			app._installEntry(entry, insertionLeaf);
+			insertionLeaves = [ insertionLeaf ];
 		}
 		else {
-			var newLeaf = app._splitNode(insertionLeaf);
+			insertionLeaves = app._splitNode(insertionLeaf);
 		}
 
 		// Adjust the tree starting at the leaf/leaves.
-		var adjustedRoots = app._adjustTree(insertionLeaf, newLeaf);
+		var adjustedRoots = app._adjustTree(insertionLeaves);
 
 		// Make the tree taller if adjustTree caused root to split.
 		var root = adjustedRoots.root;
@@ -85,12 +80,13 @@ undefined) {
 			root = app._growTaller(adjustedRoots.root, adjustedRoots.splitRoot);
 		}
 
-		return;
+		return app.get('root');;
 	},
 
 	_growTaller: function(root1, root2) {
 		var app = this;
 
+		// Create new entries for the root and split root.
 		var rootEntry1 = new EntryApp({
 			childNode: root1,
 			boundingBox: app._expandBoxOverEntries(root1.entries())
@@ -101,9 +97,20 @@ undefined) {
 			boundingBox: app._expandBoxOverEntries(root2.entries())
 		});
 
-		return new NodeApp({
+		// Create a new node to contain the entries for both old roots.
+		var newRoot = new NodeApp({
 			entries: [ rootEntry1, rootEntry2 ]
 		});
+
+		// Let the root and split root know about their new parent.
+		root1.parentEntry(rootEntry1);
+		root1.parentNode(newRoot);
+		root2.parentEntry(rootEntry2);
+		root2.parentNode(newRoot);
+
+		app.set('root', newRoot);
+
+		return app.get('root', newRoot);
 	},
 
 	_splitNode: function(node, useQuadratic) {
@@ -127,16 +134,15 @@ undefined) {
 		// A split node can be a leaf or internal. This simply allows for constructing
 		// the appropriate node type, which gives us node-type predicate methods.
 		var seeds = pickSeeds(entries);
-		var nodeApp = node.isLeaf ? LeafApp : NodeApp;
+		var nodeApp = node.isLeaf() ? LeafApp : NodeApp;
 		var node1 = new nodeApp({
 			entries: [seeds[0]],
 			parentEntry: node.parentEntry(),
 			parentNode: node.parentNode()
 		});
 		var node2 = new nodeApp({
-			entries: [seeds[1]],
-			parentEntry: node.parentEntry(),
-			parentNode: node.parentNode()
+			entries: [seeds[1]]
+			// We don't know where node2 will go until we adjust the tree...
 		});
 
 		// Partition the rest of the entries into the groups.
@@ -149,10 +155,7 @@ undefined) {
 			remainingEntries: rest
 		});
 
-		return {
-			node1: node1,
-			node2: node2 
-		};
+		return [ node1, node2 ];
 	},
 
 	_linearPickNext: function(args) {
@@ -173,28 +176,26 @@ undefined) {
 		var app = this;
 
 		// Find the greatest separation on the Y-axis.
-		var highestBottomEntry = _.max(entries, function(entry) {
+		var highestBottomPoint = _.max(entries, function(entry) {
 			return entry.boundingBox().bottommost();
 		});
 
-		var lowestTopEntry = _.min(entries, function(entry) {
+		var lowestTopPoint = _.min(entries, function(entry) {
 			return entry.boundingBox().topmost();
 		});
 
-		ySeparation = 	highestBottomEntry.boundingBox().bottommost()
-						- lowestTopEntry.boundingBox().topmost();
+		ySeparation = highestBottomPoint.y - lowestTopPoint.y;
 
 		// Find the greatest separation on the X-axis.
-		var maxLeftEntry = _.max(entries, function(entry) {
+		var maxLeftPoint = _.max(entries, function(entry) {
 			return entry.boundingBox().leftmost();
 		});
 
-		var minRightEntry = _.min(entries, function(entry) {
+		var minRightPoint = _.min(entries, function(entry) {
 			return entry.boundingBox().rightmost();
 		});
 
-		xSeparation = 	maxLeftEntry.boundingBox().leftmost()
-						- minRightEntry.boundingBox().rightmost();
+		xSeparation = maxLeftPoint.x - minRightPoint.x;
 
 		// Normalize the separations and pick the most extreme one.
 		var yNormalized = ySeparation / app._findHeight(entries);
@@ -210,11 +211,11 @@ undefined) {
 	_findHeight: function(entries) {
 		var app = this;
 
-		var topmostEntry = _.max(entries, function(entry) {
+		var topmostPoint = _.max(entries, function(entry) {
 			return entry.boundingBox().topmost();
 		});
 
-		var bottommostEntry = _.min(entries, function(entry) {
+		var bottommostPoint = _.min(entries, function(entry) {
 			return entry.boundingBox().bottommost();
 		});
 
@@ -308,8 +309,11 @@ undefined) {
 		return new BoundingBoxApp(entryPoints);
 	},
 
-	_adjustTree: function(node1, node2) {
+	_adjustTree: function(newNodes) {
 		var app = this;
+
+		var node1 = newNodes[0];
+		var node2 = newNodes[1];
 
 		if (node1.isRoot()) {
 			return {
@@ -319,34 +323,39 @@ undefined) {
 		}
 		else {
 			// Adjust the parent entry's box so it tightly encloses all entries
-			// in node1.
+			// in node1. Then replace the old node with the new node.
+			// TODO: Check for memory leaks here with the detached nodes.
 			var expandedParentBox = app._expandBoxOverEntries(node1.entries());
-			node1.parentEntry().boundingBox(expandedParentBox);
+			var parentEntry1 = node1.parentEntry();
+			parentEntry1.set('boundingBox', boundingBox(expandedParentBox));
+			parentEntry1.set('childNode', node1);
 
 			// Propagate a node split upward.
 			if (node2) {
-				// Creat a new parent entry that points to the new node and has
+				// Create a new parent entry that points to the new node and has
 				// a bounding box containing all entries in the new node.
 				var splitEntry = new EntryApp({
 					childNode: node2,
 					boundingBox: app._expandBoxOverEntries(node2.entries())
 				});
+				node2.parentEntry(splitEntry);
 
 				// If node1's parent has room, add node2's parent entry to that.
 				// Otherwise, split node1's parent and add it to that.
-				var parentNode = node1.parentNode();
+				var parentNode1 = node1.parentNode();
 				var newArgs;
-				if (app._nodeHasRoom(parentNode)) {
-					parentNode.addEntry(splitEntry);
-					newArgs = [parentNode];
+				if (app._nodeHasRoom(parentNode1)) {
+					parentNode1.addEntry(splitEntry);
+					node2.parentNode(parentNode1);
+					nextNodes = [ parentNode ];
 				}
 				else {
-					newArgs = _.values(app._splitNode(parentNode));
+					nextNodes = app._splitNode(parentNode);
 				}
 			}
 		}
 
-		return app._adjustTree.apply(app, newArgs);
+		return app._adjustTree.apply(app, nextNodes);
 	}
 
  });
