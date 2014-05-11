@@ -102,19 +102,29 @@ undefined) {
 		var view = this;
 
 		var text;
-		var recordId = node.get('recordId');
-		if (recordId) {
-			text = recordId;
-		}
-		else if (node.isRoot()) {
-			text = "Root";
-		}
-		else if (node.isLeaf()) {
-			text = "Leaf";
+		// Different text for nodes and entries.
+		if (node instanceof NodeApp) {
+			if (node.isRoot()) {
+				text = "Root";
+			}
+			else if (node.isLeaf()) {
+				text = "Leaf";
+			}
+			else {
+				text = "Node";
+			}
 		}
 		else {
-			text = "Node";
+			var recordId = node.get('recordId');
+			if (recordId) {
+				text = recordId;
+			}
+			else {
+				text = "Entry";
+			}
 		}
+//		text += " - " + node.cid;
+
 		return text;
 	}
  });

@@ -35,7 +35,7 @@ undefined) {
 		var entries = app.recordsToEntries(simpleRecords);
 		_.each(entries, function(entry) {
 			app.insertEntry(entry);
-		});
+		}, app);
 
 		return app.get('root');
 	},
@@ -50,7 +50,7 @@ undefined) {
 				boundingBox: new BoundingBoxApp(record.spatialObject.get('pointSet')),
 				recordId: record.index
 			}));
-		});
+		}, app);
 
 		return entries;
 	},
@@ -68,7 +68,10 @@ undefined) {
 			insertionLeaves = [ insertionLeaf ];
 		}
 		else {
-			insertionLeaves = app._splitNode(insertionLeaf);
+			insertionLeaves = app._splitNode({
+				node: insertionLeaf,
+				newEntry: entry
+			});
 		}
 
 		// Adjust the tree starting at the leaf/leaves.
@@ -80,7 +83,7 @@ undefined) {
 			root = app._growTaller(adjustedRoots.root, adjustedRoots.splitRoot);
 		}
 
-		return app.get('root');;
+		return app.get('root');
 	},
 
 	_growTaller: function(root1, root2) {
@@ -113,8 +116,12 @@ undefined) {
 		return app.get('root', newRoot);
 	},
 
-	_splitNode: function(node, useQuadratic) {
+	_splitNode: function(args) {
 		var app = this;
+
+		var node = args.node;
+		var useQuadratic = args.useQuadratic;
+		var newEntry = args.newEntry;
 
 		// Allow for the optional use of the quadratic algorithm.
 		var pickSeeds;
@@ -128,12 +135,14 @@ undefined) {
 			pickNext = app._linearPickNext;
 		}
 
-		var entries = node.entries();
+		// Create a copy so we don't add the new entry to the old node.
+		var entries = node.entries().slice(0);
+		entries.push(newEntry);
 
 		// Pick seed entries for the two new nodes.
 		// A split node can be a leaf or internal. This simply allows for constructing
 		// the appropriate node type, which gives us node-type predicate methods.
-		var seeds = pickSeeds(entries);
+		var seeds = pickSeeds.call(app, entries);
 		var nodeApp = node.isLeaf() ? LeafApp : NodeApp;
 		var node1 = new nodeApp({
 			entries: [seeds[0]],
@@ -146,13 +155,13 @@ undefined) {
 		});
 
 		// Partition the rest of the entries into the groups.
-		var rest = _.reject(entries, function(entry) {
+		var remainingEntries = _.reject(entries, function(entry) {
 			return entry === seeds[0] || entry === seeds[1];
 		});
-		pickNext({
+		pickNext.call(app, {
 			node1: node1,
 			node2: node2,
-			remainingEntries: rest
+			remainingEntries: remainingEntries 
 		});
 
 		return [ node1, node2 ];
@@ -163,10 +172,10 @@ undefined) {
 
 		var node1 = args.node1;
 		var node2 = args.node2;
-		var rest = args.rest;
+		var remainingEntries = args.remainingEntries;
 
-		for (i = 0; i < rest.length; i++) {
-			remaining % 2 ? node1.addEntry(rest[i]) : node2.addEntry(rest[i]);
+		for (var i = 0; i < remainingEntries.length; i++) {
+			i % 2 ? node2.addEntry(remainingEntries[i]) : node1.addEntry(remainingEntries[i]);
 		}
 
 		return;
@@ -176,26 +185,30 @@ undefined) {
 		var app = this;
 
 		// Find the greatest separation on the Y-axis.
-		var highestBottomPoint = _.max(entries, function(entry) {
-			return entry.boundingBox().bottommost();
+		var highestBottomEntry = _.max(entries, function(entry) {
+			return entry.boundingBox().bottommost().y;
 		});
 
-		var lowestTopPoint = _.min(entries, function(entry) {
-			return entry.boundingBox().topmost();
+		var lowestTopEntry = _.min(entries, function(entry) {
+			return entry.boundingBox().topmost().y;
 		});
 
-		ySeparation = highestBottomPoint.y - lowestTopPoint.y;
+		var highY = highestBottomEntry.boundingBox().bottommost().y;
+		var lowY = lowestTopEntry.boundingBox().topmost().y;
+		var ySeparation = highY = lowY;
 
 		// Find the greatest separation on the X-axis.
-		var maxLeftPoint = _.max(entries, function(entry) {
-			return entry.boundingBox().leftmost();
+		var maxLeftEntry = _.max(entries, function(entry) {
+			return entry.boundingBox().leftmost().x;
 		});
 
-		var minRightPoint = _.min(entries, function(entry) {
-			return entry.boundingBox().rightmost();
+		var minRightEntry = _.min(entries, function(entry) {
+			return entry.boundingBox().rightmost().x;
 		});
 
-		xSeparation = maxLeftPoint.x - minRightPoint.x;
+		var rightX = maxLeftEntry.boundingBox().leftmost().x;
+		var leftX = minRightEntry.boundingBox().rightmost().x;
+		var xSeparation = rightX - leftX;
 
 		// Normalize the separations and pick the most extreme one.
 		var yNormalized = ySeparation / app._findHeight(entries);
@@ -211,31 +224,33 @@ undefined) {
 	_findHeight: function(entries) {
 		var app = this;
 
-		var topmostPoint = _.max(entries, function(entry) {
-			return entry.boundingBox().topmost();
+		var topmostEntry = _.max(entries, function(entry) {
+			return entry.boundingBox().topmost().y;
 		});
 
-		var bottommostPoint = _.min(entries, function(entry) {
-			return entry.boundingBox().bottommost();
+		var bottommostEntry = _.min(entries, function(entry) {
+			return entry.boundingBox().bottommost().y;
 		});
 
-		return 	topmostEntry.boundingBox().topmost()
-				- bottommostEntry.boundingBox().bottommost();
+		var highY = topmostEntry.boundingBox().topmost().y;
+		var lowY = bottommostEntry.boundingBox().bottommost().y;
+		return highY - lowY;
 	},
 
 	_findWidth: function(entries) {
 		var app = this;
 
 		var rightmostEntry = _.max(entries, function(entry) {
-			return entry.boundingBox().rightmost();
+			return entry.boundingBox().rightmost().x;
 		});
 
 		var leftmostEntry = _.min(entries, function(entry) {
-			return entry.boundingBox().leftmost();
+			return entry.boundingBox().leftmost().x;
 		});
 
-		return 	rightmostEntry.boundingBox().rightmost()
-				- leftmostEntry.boundingBox().leftmost();
+		var rightX = rightmostEntry.boundingBox().rightmost().x;
+		var leftX = leftmostEntry.boundingBox().leftmost().x;
+		return rightX - leftX;
 	},
 
 	_installEntry: function(entry, leaf) {
@@ -258,7 +273,7 @@ undefined) {
 			return node;
 		}
 		else {
-			var mininumAreaChange;
+			var minimumAreaChange;
 			var originalArea;
 			var chosenNode;
 
@@ -267,30 +282,29 @@ undefined) {
 				var boundingBox = childEntry.boundingBox();
 				var boundingBoxArea = boundingBox.getArea();
 				
-				var expandedBox = app._expandBoxOverEntries(boundingBox, [childEntry]);
+				var expandedBox = app._expandBoxOverEntries([ childEntry ]);
 				var expandedBoxArea = expandedBox.getArea();
 				var areaChange = expandedBoxArea - boundingBoxArea;
 
 				// Choose the box that needs to expand the least.
-				if (areaChange < minimumAreaChange || _.isUndefined(minimumAreaChange)) {
+				if (_.isUndefined(minimumAreaChange) || areaChange < minimumAreaChange) {
 					minimumAreaChange = areaChange;
 					originalArea = boundingBoxArea;
-					chosenNode = childEntry.childNode();
+					chosenNode = childEntry.get('childNode');
 				}
-
 				// If there's a tie, take the box with the lower original area.
 				else if (minimumAreaChange === areaChange) {
 					if (boundingBoxArea < originalArea) {
 						minimumAreaChange = areaChange;
 						originalArea = boundingBoxArea;
-						chosenNode = childEntry.childNode();
+						chosenNode = childEntry.get('childNode');
 					}
 				}
-			});
+			}, app);
 		}
 		
 		// Try to insert into the next node down the tree.
-		return _chooseLeaf(entry, chosenNode);
+		return app._chooseLeaf(entry, chosenNode);
 	},
 
 	_entriesToPoints: function(entries) {
@@ -298,10 +312,11 @@ undefined) {
 
 		var entryPoints = [];
 		return _.each(entries, function(entry) {
-			_.union(entry.boundingBox().points(), entryPoints);
-		});
+			_.union(entry.boundingBox().get('pointSet'), entryPoints);
+		}, app);
 	},
 
+	// TODO: make this more efficient.
 	_expandBoxOverEntries: function(entries) {
 		var app = this;
 
@@ -315,6 +330,7 @@ undefined) {
 		var node1 = newNodes[0];
 		var node2 = newNodes[1];
 
+		var nextNodes;
 		if (node1.isRoot()) {
 			return {
 				root: node1,
@@ -327,8 +343,11 @@ undefined) {
 			// TODO: Check for memory leaks here with the detached nodes.
 			var expandedParentBox = app._expandBoxOverEntries(node1.entries());
 			var parentEntry1 = node1.parentEntry();
-			parentEntry1.set('boundingBox', boundingBox(expandedParentBox));
+			parentEntry1.set('boundingBox', expandedParentBox);
 			parentEntry1.set('childNode', node1);
+
+			var parentNode1 = node1.parentNode();
+			nextNodes = [ parentNode1 ];
 
 			// Propagate a node split upward.
 			if (node2) {
@@ -342,20 +361,20 @@ undefined) {
 
 				// If node1's parent has room, add node2's parent entry to that.
 				// Otherwise, split node1's parent and add it to that.
-				var parentNode1 = node1.parentNode();
-				var newArgs;
 				if (app._nodeHasRoom(parentNode1)) {
 					parentNode1.addEntry(splitEntry);
 					node2.parentNode(parentNode1);
-					nextNodes = [ parentNode ];
 				}
 				else {
-					nextNodes = app._splitNode(parentNode);
+					nextNodes = app._splitNode({
+						node: parentNode1,
+						newEntry: splitEntry
+					});
 				}
 			}
 		}
 
-		return app._adjustTree.apply(app, nextNodes);
+		return app._adjustTree(nextNodes);
 	}
 
  });

@@ -24,7 +24,7 @@ undefined) {
 
 		var pointSet = object.get('pointSet');
 		object._leftmost = _.min(pointSet, function(point) { return point.x; });
-		object._righmost = _.max(pointSet, function(point) { return point.x; });
+		object._rightmost = _.max(pointSet, function(point) { return point.x; });
 		object._topmost = _.max(pointSet, function(point) { return point.y; });
 		object._bottommost = _.min(pointSet, function(point) { return point.y; });
 
