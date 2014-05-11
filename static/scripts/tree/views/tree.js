@@ -5,7 +5,8 @@ define('tree/views/tree', [
 	'd3',
 	'view',
 	'tree/app',
-	'tree/node'
+	'tree/node',
+	'map/spatial_object/bounding_box'
 ], function(
 	$,
 	_,
@@ -14,6 +15,7 @@ define('tree/views/tree', [
 	View,
 	TreeApp,
 	NodeApp,
+	BoundingBoxApp,
 undefined) {
  var TreeView = View.extend({
 	initialize: function() {
@@ -41,6 +43,17 @@ undefined) {
 		var view = this;
 
 		view.setTree();
+
+		// TEST
+		var testBox = new BoundingBoxApp({
+			pointSet: [
+				{x: 200, y: 200},
+				{x: 600, y: 200},
+				{x: 200, y: 450},
+				{x: 600, y: 450}
+			]
+		});
+		console.log(TreeApp.search(testBox));
 
 		return view;
 	},

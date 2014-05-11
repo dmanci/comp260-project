@@ -27,7 +27,9 @@ undefined) {
 				[ { "x": 80,  "y": 5}, { "x": 100, "y": 60} ],
 				[ { "x": 10,   "y": 5}, { "x": 10,  "y": 50} ], 
 				[ { "x": 70,  "y": 30}, { "x": 20,  "y": 90} ],
-				[ { "x": 25,  "y": 50}, { "x": 30, "y": 75} ]
+				[ { "x": 25,  "y": 50}, { "x": 30, "y": 75} ],
+				[ { "x": 300,  "y": 300}, { "x": 400,  "y": 400} ],
+				[ { "x": 500,  "y": 500}, { "x": 550, "y": 550} ]
 		],
 		highestIndex: 0
 	},
@@ -55,7 +57,7 @@ undefined) {
 
 		var record = {};
 		var indexStr = nextIndex.toString();
-		record[indexStr] = { spatialObject: new SpatialObject(pointSet) };
+		record[indexStr] = { spatialObject: new SpatialObject({ pointSet: pointSet }) };
 
 		return record;
 	},

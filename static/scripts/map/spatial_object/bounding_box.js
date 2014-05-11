@@ -12,21 +12,21 @@ define('map/spatial_object/bounding_box', [
 	SpatialObject,
 undefined) {
  var BoundingBoxApp = SpatialObject.extend({
-	initialize: function(points) {
+	initialize: function() {
 		var app = this;
 		SpatialObject.prototype.initialize.apply(app, arguments);
 
-		if (points) {
+		if (app.get('pointSet')) {
 			app.constructBox();
 		}
 
 		return app;
 	},
 
-	constructBox: function(points) {
+	constructBox: function() {
 		var app = this;
 
-		app.box = app.minimumBoundingBox();
+		app.set('boxObject', app.minimumBoundingBox());
 		app.set('pointSet', app.boxObjectToArray());
 	},
 
@@ -35,54 +35,79 @@ undefined) {
 
 		return {
 			topLeft: {
-				x: app.leftmost,
-				y: app.topmost
+				x: app.leftmost().x,
+				y: app.topmost().y
 			},
 			topRight: {
-				x: app.rightmost,
-				y: app.topmost
+				x: app.rightmost().x,
+				y: app.topmost().y
 			},
 			bottomLeft: {
-				x: app.leftmost,
-				y: app.bottommost
+				x: app.leftmost().x,
+				y: app.bottommost().y
 			},
 			bottomRight: {
-				x: app.rightmost,
-				y: app.bottommost
+				x: app.rightmost().x,
+				y: app.bottommost().y
 			}
 		};
 	},
 
-	changeSize: function(points) {
-		var app = this;
-
-		app.points(points);
-		app.box(app.minimumBoundingBox());
-	},
+//	changeSize: function(points) {
+//		var app = this;
+//
+//		app.points(points);
+//		app.box(app.minimumBoundingBox());
+//	},
 
 	boxObjectToArray: function() {
 		var app = this;
 
-		return _.values(app.box);
+		return _.values(app.boxObject());
 	},
 
-	box: function(box) {
+	boxObject: function(box) {
 		var app = this;
 
 		if (box) {
-			app.box = box;
+			app.set('boxObject', box);
 		}
 
-		return app.box;
+		return app.get('boxObject');
 	},
 
 	getArea: function() {
 		var app = this;
 
-		var height = app.topmost - app.bottommost;
-		var width = app.rightmost - app.leftmost;
+		var height = app.topmost().y - app.bottommost().y;
+		var width = app.rightmost().x - app.leftmost().x;
 
 		return height * width;
+	},
+
+	// TODO: Revisit this.
+	contains: function(otherBox) {
+		var app = this;
+
+		var contains = false;
+		if (app.leftmost().x < otherBox.leftmost().x && app.rightmost().x > otherBox.leftmost().x) {
+			if (app.topmost().y > otherBox.topmost().y && app.bottommost().y < otherBox.topmost().y) {
+				contains = true;
+			}
+			else if (app.topmost().y > otherBox.bottommost().y && app.bottommost().y < otherBox.bottommost().y) {
+				contains = true;
+			}
+		}
+		else if (app.leftmost().x < otherBox.rightmost().x && app.rightmost().x > otherBox.rightmost().x) {
+			if (app.topmost().y > otherBox.topmost().y && app.bottommost().y < otherBox.topmost().y) {
+				contains = true;
+			}
+			else if (app.topmost().y > otherBox.bottommost().y && app.bottommost().y < otherBox.bottommost().y) {
+				contains = true;
+			}
+		}
+
+		return contains;
 	}
  });
 

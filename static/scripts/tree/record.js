@@ -18,11 +18,11 @@ undefined) {
 		app.record = app.createRecord(dataElement);
 	},
 
-	 createRecord: function(index, dataElement) {
+	 createRecord: function(index, pointSet) {
 		var app = this;
 
 		var record = {};
-		record[index] = new SpatialObject(dataElement);
+		record[index] = new SpatialObject({ pointSet: pointSet });
 		return record;
 	 },
 

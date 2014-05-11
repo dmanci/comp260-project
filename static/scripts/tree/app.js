@@ -47,7 +47,7 @@ undefined) {
 		var entries = [];
 		_.each(simpleRecords, function(record) {
 			entries.push(new EntryApp({
-				boundingBox: new BoundingBoxApp(record.spatialObject.get('pointSet')),
+				boundingBox: new BoundingBoxApp({ pointSet: record.spatialObject.get('pointSet') }),
 				recordId: record.index
 			}));
 		}, app);
@@ -265,7 +265,7 @@ undefined) {
 		return node.numberOfEntries() < app.get('M');
 	},
 
-	// TODO: Make iterative.
+	// TODO: Make iterative and optimize.
 	_chooseLeaf: function(entry, node) {
 		var app = this;
 		
@@ -279,10 +279,15 @@ undefined) {
 
 			// Choose a bounding box from one of the children to descend into.
 			_.each(node.entries(), function(childEntry) {
+				// Make a copy so we don't actually add the new entry - this is a hypothetical
+				// check.
+				var newEntries = node.entries().slice(0);
+				newEntries.push(entry);
+
 				var boundingBox = childEntry.boundingBox();
 				var boundingBoxArea = boundingBox.getArea();
 				
-				var expandedBox = app._expandBoxOverEntries([ childEntry ]);
+				var expandedBox = app._expandBoxOverEntries(newEntries);
 				var expandedBoxArea = expandedBox.getArea();
 				var areaChange = expandedBoxArea - boundingBoxArea;
 
@@ -310,18 +315,19 @@ undefined) {
 	_entriesToPoints: function(entries) {
 		var app = this;
 
-		var entryPoints = [];
-		return _.each(entries, function(entry) {
-			_.union(entry.boundingBox().get('pointSet'), entryPoints);
-		}, app);
+		var entryPointSets = _.map(entries, function(entry) {
+			return entry.boundingBox().get('pointSet');
+		});
+
+		return _.flatten(entryPointSets);
 	},
 
-	// TODO: make this more efficient.
+	// TODO: make this more efficient - make this actually expand rather than creating a new box.
 	_expandBoxOverEntries: function(entries) {
 		var app = this;
 
 		var entryPoints = app._entriesToPoints(entries);
-		return new BoundingBoxApp(entryPoints);
+		return new BoundingBoxApp({ pointSet: entryPoints });
 	},
 
 	_adjustTree: function(newNodes) {
@@ -375,6 +381,36 @@ undefined) {
 		}
 
 		return app._adjustTree(nextNodes);
+	},
+
+	/*****************************************************************************
+	*	SEARCH
+	*****************************************************************************/
+	search: function(searchBox, node) {
+		var app = this;
+		var result;
+
+		var searchNode = node || app.get('root');
+		var entries = searchNode.entries();
+		var qualifyingEntries = [];
+
+		// TODO: optimize
+		_.each(entries, function(entry) {
+			if (app.doPointSetsOverlap(entry.boundingBox(), searchBox)) {
+				qualifyingEntries.push(
+					searchNode.isLeaf()
+					? entry
+					: app.search(searchBox, entry.get('childNode')));
+			}
+		}, app);
+
+		return _.flatten(qualifyingEntries);
+	},
+
+	doPointSetsOverlap: function(box1, box2) {
+		var app = this;
+
+		return box1.contains(box2) || box2.contains(box1);
 	}
 
  });
