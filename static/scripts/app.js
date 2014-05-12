@@ -32,6 +32,35 @@ undefined) {
 			model: DataApp
 		});
 
+		$('document').ready(function() {
+			var $navBar = $('#navigation');
+			var $pages = $('.page');
+			var numberOfPages = $pages.length;
+
+			var navHTML = '';
+			$pages.each(function(i, el) {
+				var j = i + 1;
+				navHTML += "<li class='pageButton'>Page " + j + "</li>\n";
+				$(el).data('page-number', j);
+			});
+
+			$navBar.html(navHTML);
+			var $navBarItems = $navBar.children();
+			$navBarItems.each(function(i, el) {
+				$(el).data('page-number', i + 1);
+				$(el).click(function() {
+					var j = i + 1;
+					var $page = $pages.filter(function() {
+						var el = this;
+						return $(el).data('page-number') == j;
+					});
+					$pages.hide();
+					$page.show();
+				});
+			});
+
+
+		})
 //		var object = new SpatialObject();
 	}
  };
