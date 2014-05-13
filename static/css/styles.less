@@ -2,29 +2,25 @@ body, html {
 	height: auto;
 }
 
-.content-container {
-	height: auto;
-	display: block;
-	position: relative;
-}
-
-.container {
-	height: auto;
-	width: 600px;
+.view-container {
+	height: 600px;
+	width: 40%;
 	border: solid 1px;
 	display: inline-block;
 	float: left;
+	overflow: hidden;
+	margin-bottom: 50px;
 }
 
-.map {
-	.container;
+#map-container {
+	.view-container;
 	border-color: red;
 }
 
-.tree {
-	.container;
+#tree-container {
+	.view-container;
 	border-color: blue;
-	margin-left: 50px;
+	margin-left: 20px;
 }
 
 .node circle {
@@ -47,9 +43,8 @@ body, html {
 	.text;
 	list-style: none;
 	padding: 0;
-	position: fixed;
-	bottom: 0px;
-	margin-top: 10px;
+	position: relative;
+	top: 0px;
 	
 	.pageButton {
 		display: inline;
@@ -89,5 +84,9 @@ h1 {
 	}
 
 	width: 60%;
+}
+
+#demo-container {
+	width: 100%;
 }
 

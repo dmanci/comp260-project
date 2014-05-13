@@ -38,9 +38,15 @@ undefined) {
 			var numberOfPages = $pages.length;
 
 			var navHTML = '';
+			var j;
 			$pages.each(function(i, el) {
-				var j = i + 1;
-				navHTML += "<li class='pageButton'>Page " + j + "</li>\n";
+				j = i + 1;
+				if ($(el).attr('id') == 'demo-container') {
+					navHTML += "<li class='pageButton'>Demo</li>\n";
+				}
+				else {
+					navHTML += "<li class='pageButton'>Page " + j + "</li>\n";
+				}
 				$(el).data('page-number', j);
 			});
 
@@ -49,7 +55,7 @@ undefined) {
 			$navBarItems.each(function(i, el) {
 				$(el).data('page-number', i + 1);
 				$(el).click(function() {
-					var j = i + 1;
+					j = i + 1;
 					var $page = $pages.filter(function() {
 						var el = this;
 						return $(el).data('page-number') == j;

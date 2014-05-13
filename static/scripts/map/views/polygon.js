@@ -28,14 +28,26 @@ undefined) {
 	render: function() {
 		var view = this;
 
-		var pointSets = view.model.get('pointSets');
-		_.each(pointSets, function(pointSet) {
+//		var pointSets = view.model.get('pointSets');
+		var records = view.model.simpleRecordList();
+//		_.each(pointSets, function(pointSet) {
+	debugger;
+		_.each(records, function(record) {
+			var pointSet = record.spatialObject.get('pointSet');
+			var id = record.index;
 			view.svgContainer
 				.append("path")
 				.attr('d', view.linePathFunction(pointSet))
 				.attr('stroke', 'blue')
 				.attr('stroke-width', 2)
 				.attr('fill', 'none');
+
+			view.svgContainer
+				.append('text')
+				.attr("x", pointSet[0].x)
+                .attr("y", pointSet[1].y)
+				.text(id)
+				.attr('font-size', '9pt');
 		});
 
 		return view;

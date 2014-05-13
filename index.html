@@ -13,6 +13,7 @@
 		<div id='header'>
 			<h1>R Trees!</h1>
 		</div>
+		<ul id='navigation'></ul>
 		<div id='content-container'>
 			<div class='page'>
 				<h2>Introduction</h2>
@@ -226,12 +227,85 @@
 					</span>
 				</p>
 			</div>
+			<div class='page hidden'>
+				<h2>The Insertion Algorithm</h2>
+				<p>
+					<span class='question'>
+						Are we done yet?
+					</span>
+					<br><br>
+					<span class='answer'>
+						Nope. Now we need to clean up the tree above the leaf, whether we split it
+						or not.
+						<br><br>
+						(1) Start with the leaf we originally chose. Now go up the tree to its
+						parent node (well, really the entry that points to it within the parent
+						node).
+						<br><br>
+						(2) Recall that each internal entry contains a box that tightly encloses all the
+						entries in its child node. Taking the parent of our insertion leaf, we'll
+						make sure its box tightly encloses the new set of entries.
+						<br><br>
+						(3) But we're not done yet. If we split leaf A into leaf B, we need to
+						attach that to the tree somewhere. If leaf A's parent has room, we can just
+						create a new entry for it, and stick it there. But if it doesn't, we'll have
+						to make a new parent node to contain it. How do we do that? Using the same
+						method we used for splitting the original leaf node.
+						<br><br>
+						(4) Now repeat this whole process, but this time starting from the insertion
+						leaf's parent node (and possibly, a split parent node, depending on what
+						happened in step (3)). We're going to push our changes up the tree until we
+						hit the root, fixing boxes and splitting nodes as we go.
+						<br><br>
+						(5) What happens if the root splits? Where do we go from there? That's easy.
+						We make a new root, attaching the old root and the node that split from it.
+					</span>
+				</p>
+			</div>
 
-			<div id='maps' class='hidden'>
-				<div id='map-container' class="map"></div>
-				<div id='tree-container' class="tree"></div>
+			<div class='page hidden'>
+				<h2>The Search Algorithm</h2>
+				<p>
+					<span class='question'>
+						Now that we have a tree, how do we find our records?
+					</span>
+					<br><br>
+					<span class='answer'>
+						Our new tree is pretty good at letting us search within some area - any area
+						we want. So our search input might be something like, "give me all
+						restaurants with four stars within so-and-so area."
+					</span>
+				</p>
+			</div>
+			<div class='page hidden'>
+				<h2>The Search Algorithm</h2>
+				<p>
+					<span class='question'>
+						Great. How do we start?
+					</span>
+					<br><br>
+					<span class='answer'>
+						We start with the root node again and ask some questions.
+						<br><br>
+						(1) Are you a leaf node? If you are, let me check your entries. (Recall that
+						leaf entries let us know where to find the actual record for the object
+						we're after in the database, and tell us the approximate area that object
+						covers.) If any of the entry boxes overlap my search area, go get those
+						records (in this case, for a restaurant), and do any other filtering we
+						asked for (in this case, restaurants with four stars).
+						<br><br>
+						(2) If you're a leaf, we'll still check each entry's box. Except this time,
+						we'll have to descend down the tree when an entry's box overlaps, until we
+						get to a leaf, where we'll proceed as in step (1).
+					</span>
+				</p>
+			</div>
+
+			<div id='demo-container' class='page hidden'>
+				<h2>Demo!</h2>
+					<div id='map-container' class="map"></div>
+					<div id='tree-container' class="tree"></div>
 			</div>
 		</div>
-		<ul id='navigation'></ul>
 	</body>
 </html>
