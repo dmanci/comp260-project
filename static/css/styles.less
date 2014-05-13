@@ -1,5 +1,15 @@
+body, html {
+	height: auto;
+}
+
+.content-container {
+	height: auto;
+	display: block;
+	position: relative;
+}
+
 .container {
-	height: 600px;
+	height: auto;
 	width: 600px;
 	border: solid 1px;
 	display: inline-block;
@@ -34,14 +44,50 @@
 }
 
 #navigation {
+	.text;
 	list-style: none;
+	padding: 0;
+	position: fixed;
+	bottom: 0px;
+	margin-top: 10px;
 	
 	.pageButton {
 		display: inline;
 		cursor: pointer;
+	}
+
+	li {
+		padding-right: 10px;
 	}
 }
 
 .hidden {
 	display: none;
 }
+
+.text {
+	font-family: "Arial";
+}
+
+h1 {
+	.text;
+
+	color: blue;
+	font-size: 30pt;
+}
+
+.page {
+	.text;
+
+	h2 {
+		font-size: 20pt;
+		color: blue;
+	}
+
+	p {
+		font-size: 14pt;
+	}
+
+	width: 60%;
+}
+

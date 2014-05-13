@@ -13,20 +13,225 @@
 		<div id='header'>
 			<h1>R Trees!</h1>
 		</div>
-		<ul id='navigation'></ul>
 		<div id='content-container'>
 			<div class='page'>
-				<h2>Some Title 1</h2>
-				<p>A description of page 1...</p>
+				<h2>Introduction</h2>
+				<p>
+					<span class='question'>
+						So what is an R-Tree, anyway?
+					</span>
+					<span class='answer'>
+						Well, an R-Tree is a data structure used for
+						efficiently storing information about spatial objects.
+					</span><br><br>
+
+					<span class='question'>
+						Ok... so what's a spatial object then?
+					</span>
+					<span class='answer'>
+						A spatial object could be a road, a movie
+						theater, a plot of land... really, anything object that contains space. (And not
+						just three-dimensional space - space in any number of dimensions you
+						like!)
+					</span><br><br>
+
+					<span class='question'>
+						So why do we need something like the R-Tree. Can't we just store it in a
+						database somewhere?
+					</span>
+					<span class='answer'>
+						We could. But consider if you had a database full of spatial objects. Each
+						row told you where the object is on a coordinate plane and some information
+						about the object. For a restaurant might have a latitude and longitude, plus
+						some reviews of the food. If we know the restaurant, we can look it up like
+						any other data and find out how good the food is.
+						<br><br>
+						But what if we want to know all the restaurants within a few miles of a given
+						location with at least four stars? We could naively go through every record
+						in our database, compute the distance from our reference location, check the
+						reviews, and return the qualifying restaurants. That seems like a lot of
+						work, though.
+						<br><br>
+						That's where the R-Tree comes in handy...
+					</span>
+				</p>
 			</div>
 			<div class='page hidden'>
-				<h2>Some Title 2</h2>
-				<p>A description of page 2...</p>
+				<h2>The R-Tree</h2>
+				<p>
+					<span class='question'>
+						What's the deal with the R-Tree?
+					</span>
+					<br><br>
+					<span class='answer'>
+						The R-Tree was developed in 1984 by <a href="#">Antonin Guttman</a> as a
+						solution to the problem described in the introduction. Here's the basic
+						concept of the R-Tree:
+						<br><br>
+						<i>For each object, create a box that tightly encloses it. Then make a
+						number of larger boxes, each of which tightly encloses a number of smaller
+						boxes. Give each node in the tree its own box. When we search for an object,
+						use the larger boxes to cut out branches of the tree. We no longer have to look through every
+						single record in our database, but only those close to the area we care
+						about!</i>
+					</span>
+					
+				</p>
 			</div>
+
+			<div class='page hidden'>
+				<h2>A Few R-Tree Details</h2>
+				<p>
+					<span class='question'>
+						What makes up an R-Tree?
+					</span>
+					<br><br>
+					<span class='answer'>
+						An R-Tree has three main components: (1) Internal nodes, (2) Leaf nodes, and
+						(3) entries.
+						<br><br>
+						(1) We'll start with a leaf. Leaves contain a number of "entries." A leaf entry
+						contains all the information on where to find the spatial object in our database. 
+						This might be a unique key, or even a direct pointer to the record. A leaf
+						entry also contains that box we made around our object - call this our
+						minimum bounding box.
+						<br><br>
+						(2) Internal nodes also contain a number of entries, except in this case,
+						each entry has a pointer to a child node. Which node?
+						Like leaf entries, internal entries have a box. This time, the box encloses
+						a number of smaller boxes. And instead of pointing to a record in the
+						database, the entry points to a child node that has the entries enclosed by
+						its box.
+					</span>
+					
+				</p>
+			</div>
+			<div class='page hidden'>
+				<h2>A Few R-Tree Details</h2>
+				<p>
+					<span class='question'>
+						Are there rules for an R-Tree?
+					</span>
+					<br><br>
+					<span class='answer'>
+						Like other trees, there are a few rules to follow.
+						<br><br>
+						(1) We can't just put any amount of entries into a node - we need to bound this
+						number. Let's say a node must have at least m entries, and no more than M
+						entries. What's more, m must be at least half of M.
+						<br><br>
+						(2) All leaf nodes must appear on the same level. That is, no branch will ever
+						be longer than any other.
+						<br><br>
+						(3) The root node must have at least two children, unless it is a leaf.
+					</span>
+				</p>
+			</div>
+
+			<div class='page hidden'>
+				<h2>The Insertion Algorithm</h2>
+				<p>
+					<span class='question'>
+						Where should we insert a new record?
+					</span>
+					<br><br>
+					<span class='answer'>
+						First, we need to find an appropriate leaf.
+						<br><br>
+						(1) Start at the root node.
+						<br><br>
+						(2) If it's a leaf, let's choose it.
+						<br><br>
+						(3) If it's an internal node, let's inspect its entries:<br>
+						Let's hypothetically consider we add the new record to an entry. How
+						much larger do we need to the make that entry's box? Now repeat for the
+						other entries. Which one needed to be enlarged the least? Choose that one.
+						And if entries tie, choose the one whose area is the smallest.
+						<br><br>
+						Remember, the chosen entry is internal, so it points to another node. Repeat 
+						this process for the next node until we get to a leaf.
+					</span>
+				</p>
+			</div>
+			<div class='page hidden'>
+				<h2>The Insertion Algorithm</h2>
+				<p>
+					<span class='question'>
+						Now do we add it to the leaf we just chose?
+					</span>
+					<br><br>
+					<span class='answer'>
+						Maybe. Recall that a node can have at most M entries, for some M that we
+						chose. If the leaf has less than M, then sure, add it. Otherwise, we'll have
+						to make some room by splitting the node into two new ones...
+					</span>
+				</p>
+			</div>
+			<div class='page hidden'>
+				<h2>The Insertion Algorithm</h2>
+				<p>
+					<span class='question'>
+						How do we split a node?
+					</span>
+					<br><br>
+					<span class='answer'>
+						If we want to split node A, we could just make a new node, B, and give it
+						some of node A's entries. But we want some more assurance that when we
+						search in the future, we won't have to look in both of these entries. We can
+						achieve this by minimizing the combined area of node A's box and node B's
+						box. 
+						There are a few ways of doing this:
+						<br><br>
+						(1) Try every combinations of groupings and pick the smallest area. This
+						gives us the optimal solution, but takes a while (exponential in M,
+						actually).
+						<br><br>
+						(2) We could use a quadratic algorithm instead. Without going into too much
+						detail (this tutorial focuses on the third option), this algorithm chooses
+						two "seed" entries by comparing the space wasted between pairs of entries.
+						The pair of entries that waste the most space become the first entries in
+						nodes A and B. It may not give us the absolute best split, but it's a lot faster.
+						<br><br>
+						(3) Finally, we can use a linear-time algorithm...
+					</span>
+				</p>
+			</div>
+			<div class='page hidden'>
+				<h2>The Insertion Algorithm</h2>
+				<p>
+					<span class='question'>
+						How do we perform a linear split?
+					</span>
+					<br><br>
+					<span class='answer'>
+						(1) For each dimension, find the entry whose box has the highest low side,
+						and the entry whose box has the lowest high side. In the x-y coordinate
+						plane, this means finding a pair using the x-axis, and the pair using the
+						y-axis. Once we find these, subtract to find the separation.
+						<br><br>
+						(2) Now find the total width (the separation of the most extreme points)
+						along each dimension. On the y-axis, this means finding the highest and
+						lowest y-coordinates, and subtracting.
+						<br><br>
+						(3) Now "normalize," by dividing the separation of each pair found in step
+						(1) by the widths found in step (2).
+						<br><br>
+						(4) We'll choose the pair with the greatest separation as our
+						starter entries for nodes A and B. This gives us a decent approximation of
+						which entries would need a box that wastes the most space if they were in
+						the same node.
+						<br><br>
+						(5) Lastly, randomly assign the remaining entries into each of the two
+						nodes.
+					</span>
+				</p>
+			</div>
+
 			<div id='maps' class='hidden'>
 				<div id='map-container' class="map"></div>
 				<div id='tree-container' class="tree"></div>
 			</div>
 		</div>
+		<ul id='navigation'></ul>
 	</body>
 </html>
