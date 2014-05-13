@@ -28,10 +28,7 @@ undefined) {
 	render: function() {
 		var view = this;
 
-//		var pointSets = view.model.get('pointSets');
 		var records = view.model.simpleRecordList();
-//		_.each(pointSets, function(pointSet) {
-	debugger;
 		_.each(records, function(record) {
 			var pointSet = record.spatialObject.get('pointSet');
 			var id = record.index;

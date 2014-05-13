@@ -21,6 +21,7 @@
 					<span class='question'>
 						So what is an R-Tree, anyway?
 					</span>
+					<br><br>
 					<span class='answer'>
 						Well, an R-Tree is a data structure used for
 						efficiently storing information about spatial objects.
@@ -29,6 +30,7 @@
 					<span class='question'>
 						Ok... so what's a spatial object then?
 					</span>
+					<br><br>
 					<span class='answer'>
 						A spatial object could be a road, a movie
 						theater, a plot of land... really, anything object that contains space. (And not
@@ -40,6 +42,7 @@
 						So why do we need something like the R-Tree. Can't we just store it in a
 						database somewhere?
 					</span>
+					<br><br>
 					<span class='answer'>
 						We could. But consider if you had a database full of spatial objects. Each
 						row told you where the object is on a coordinate plane and some information
@@ -58,6 +61,19 @@
 				</p>
 			</div>
 			<div class='page hidden'>
+				<h2>Introduction</h2>
+				<p>
+					<span class='question'>
+						What should I know going into this?
+					</span>
+					<br><br>
+					<span class='answer'>
+						You should probably have some general understanding of how tree data
+						structures work and very basic knowledge of coordinate planes. Other than that, you should be good to go!
+					</span><br><br>
+				</p>
+			</div>
+			<div class='page hidden'>
 				<h2>The R-Tree</h2>
 				<p>
 					<span class='question'>
@@ -65,7 +81,7 @@
 					</span>
 					<br><br>
 					<span class='answer'>
-						The R-Tree was developed in 1984 by <a href="#">Antonin Guttman</a> as a
+						The R-Tree was developed in 1984 by <a href="http://www-db.deis.unibo.it/courses/SI-LS/papers/Gut84.pdf">Antonin Guttman</a> as a
 						solution to the problem described in the introduction. Here's the basic
 						concept of the R-Tree:
 						<br><br>
@@ -303,6 +319,19 @@
 
 			<div id='demo-container' class='page hidden'>
 				<h2>Demo!</h2>
+					<div>
+						<p>
+							To search, enter box coordinates in the field in the form
+							x1,y1:x2,y2:....<br>
+							Note that the (0, 0) point is in the upper-left corner.<br>
+							Ex: "0,0:200,0:0,200:200,200"
+						</p>
+						<form id='search-form'>
+							Search: <input type='text' id='search'><input type='button'
+							value="Submit" id='submit-button'>
+						</form>
+						Result: <span id='result'></span>
+					</div>
 					<div id='map-container' class="map"></div>
 					<div id='tree-container' class="tree"></div>
 			</div>

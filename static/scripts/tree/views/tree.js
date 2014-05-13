@@ -35,6 +35,28 @@ undefined) {
 
 		TreeApp.constructTree(view.model.get('records'));
 
+		$('#submit-button').mouseup(function() {
+			var searchText = $('#search').val();
+			var points = searchText.split(':');
+			var pointSet = [];
+			_.each(points, function(point) {
+				var p = point.split(',');
+				pointSet.push({
+					x: Number(p[0]),
+					y: Number(p[1])
+				});
+			});
+			var searchBox = new BoundingBoxApp({
+				pointSet: pointSet
+			});
+			var entries = TreeApp.search(searchBox);
+			var ids = _.map(entries, function(entry) {
+				return entry.get('recordId');
+			});
+
+			$('#result').html(ids.join(", "));
+		});
+
 		view.render();
 		return view;
 	},
@@ -45,15 +67,15 @@ undefined) {
 		view.setTree();
 
 		// TEST
-		var testBox = new BoundingBoxApp({
-			pointSet: [
-				{x: 200, y: 200},
-				{x: 600, y: 200},
-				{x: 200, y: 450},
-				{x: 600, y: 450}
-			]
-		});
-		console.log(TreeApp.search(testBox));
+//		var testBox = new BoundingBoxApp({
+//			pointSet: [
+//				{x: 200, y: 200},
+//				{x: 600, y: 200},
+//				{x: 200, y: 450},
+//				{x: 600, y: 450}
+//			]
+//		});
+//		console.log(TreeApp.search(testBox));
 
 		return view;
 	},

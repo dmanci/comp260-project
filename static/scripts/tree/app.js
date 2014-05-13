@@ -172,10 +172,12 @@ undefined) {
 
 		var node1 = args.node1;
 		var node2 = args.node2;
-		var remainingEntries = args.remainingEntries;
+		var remainingEntries = args.remainingEntries.slice(0);
 
-		for (var i = 0; i < remainingEntries.length; i++) {
-			i % 2 ? node2.addEntry(remainingEntries[i]) : node1.addEntry(remainingEntries[i]);
+		for (var i = 0; remainingEntries.length; i++) {
+			var choice = Math.floor((Math.random() * remainingEntries.length) + 1);
+			var entry = remainingEntries.splice(choice - 1, 1)[0];
+			!(i % 2) ? node1.addEntry(entry) : node2.addEntry(entry);
 		}
 
 		return;
