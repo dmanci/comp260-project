@@ -319,19 +319,34 @@
 
 			<div id='demo-container' class='page hidden'>
 				<h2>Demo!</h2>
-					<div>
+					<div class='demo-info'>
 						<p>
-							To search, enter box coordinates in the field in the form
-							x1,y1:x2,y2:....<br>
+							This demo shows a test set of polygons on the left-hand side and how
+							they might be stored in an R-Tree structure on the right-hand side.
+							Notice anything? The R-Tree will not always come out the same. This is
+							because splitting nodes happens somewhat randomly. The order of adding
+							an object also affects the placement of objects.
+							<br><br>
+							To search an area for overlapping polygons, enter box coordinates in the field in the form of 
+							"x:y:height:width"<br>
 							Note that the (0, 0) point is in the upper-left corner.<br>
-							Ex: "0,0:200,0:0,200:200,200"
+							Ex: "0:0:100:100" will give me a box starting in the upper-left corner,
+							with sides 100 px in length.<br>
+							To add a polygon, enter the points, in the order you would draw them
+							with a pen, using the form "x1,y1:x2,y2:x3,y3:..."<br>
+							Ex: "0,0:0,100:100,100,100,0" will produce that same box.
 						</p>
 						<form id='search-form'>
 							Search: <input type='text' id='search'><input type='button'
 							value="Submit" id='submit-button'>
 						</form>
-						Result: <span id='result'></span>
+						<div class='result'>Result: <span id='result'></span></div>
+						<form id='add-form'>
+							Add: <input type='text' id='add'><input type='button'
+							value="Add" id='add-button'>
+						</form>
 					</div>
+						<hr>
 					<div id='map-container' class="map"></div>
 					<div id='tree-container' class="tree"></div>
 			</div>

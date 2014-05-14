@@ -53,6 +53,9 @@ undefined) {
 			$navBar.html(navHTML);
 			var $navBarItems = $navBar.children();
 			$navBarItems.each(function(i, el) {
+				if (i === 0) {
+					$(el).addClass('nav-open');
+				}
 				$(el).data('page-number', i + 1);
 				$(el).click(function() {
 					j = i + 1;
@@ -62,6 +65,8 @@ undefined) {
 					});
 					$pages.hide();
 					$page.show();
+					$navBarItems.removeClass('nav-open');
+					$(el).addClass('nav-open');
 				});
 			});
 

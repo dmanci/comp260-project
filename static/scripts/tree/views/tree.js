@@ -37,7 +37,40 @@ undefined) {
 
 		$('#submit-button').mouseup(function() {
 			var searchText = $('#search').val();
-			var points = searchText.split(':');
+			var params = searchText.split(':');
+			
+			var searchParams = _.map(params, function(param) { return Number(param); });
+			var pointSet = [];
+			pointSet.push({ x: searchParams[0], y: searchParams[1] });
+			pointSet.push({
+				x: searchParams[0],
+				y: searchParams[1] + searchParams[2]
+			});
+			pointSet.push({
+				x: searchParams[0] + searchParams[3],
+				y: searchParams[1] + searchParams[2]
+			});
+			pointSet.push({
+				x: searchParams[0] + searchParams[3],
+				y: searchParams[1]
+			});
+
+			var searchBox = new BoundingBoxApp({
+				pointSet: pointSet
+			});
+
+			var entries = TreeApp.search(searchBox);
+			var ids = _.map(entries, function(entry) {
+				return entry.get('recordId');
+			});
+
+			Backbone.trigger('search', searchBox, searchParams);
+			$('#result').html(ids.join(", "));
+		});
+
+		$('#add-button').mouseup(function() {
+			var addText = $('#add').val();
+			var points = addText.split(':');
 			var pointSet = [];
 			_.each(points, function(point) {
 				var p = point.split(',');
@@ -46,16 +79,21 @@ undefined) {
 					y: Number(p[1])
 				});
 			});
-			var searchBox = new BoundingBoxApp({
-				pointSet: pointSet
-			});
-			var entries = TreeApp.search(searchBox);
-			var ids = _.map(entries, function(entry) {
-				return entry.get('recordId');
-			});
 
-			$('#result').html(ids.join(", "));
+			var addedRecord = view.model.addPointSet(pointSet);
+			view.model.trigger('record-added', addedRecord);
+
+			var simpleRecords = view.model.simpleRecordList(addedRecord);
+			var entries = TreeApp.recordsToEntries(simpleRecords);
+			TreeApp.insertEntry(entries[0]);
+
+			view.clear();
+			view.render();
 		});
+
+
+		view.svgContainer = view.$el.append("svg")
+			.classed('tree-container', true);
 
 		view.render();
 		return view;
@@ -80,6 +118,12 @@ undefined) {
 		return view;
 	},
 
+	clear: function() {
+		var view = this;
+
+		view.svgContainer.selectAll('g').remove();
+	},
+
 	setTree: function() {
 		var view = this;
 		var tree = view.layout
@@ -87,22 +131,20 @@ undefined) {
 
 		var diagonal = D3.svg.diagonal();
 
-		var svg = view.$el.append("svg")
-			.attr("width", 500)
-			.attr("height", 500)
-			.append("g")
-				.attr("transform", "translate(50, 50)");
+		view.treeContainer = view.svgContainer.append("g")
+			.attr("transform", "translate(50, 50)");
 
 		var nodes = tree.nodes(TreeApp.get('root'));
 		var links = tree.links(nodes);
 		
-		var link = svg.selectAll('path.link')
+		var link = view.treeContainer.selectAll('path.link')
 			.data(links)
-			.enter().append('path')
-				.attr('class', 'link')
-				.attr('d', diagonal);
+			.enter()
+			.append('path')
+			.attr('class', 'link')
+			.attr('d', diagonal);
 
-		var node = svg.selectAll('g.node')
+		var node = view.treeContainer.selectAll('g.node')
 			.data(nodes)
 			.enter().append('g')
 				.attr('class', 'node')

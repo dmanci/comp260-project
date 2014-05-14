@@ -23,7 +23,7 @@ undefined) {
 	defaults: {
 		pointSets: [
 				[ { "x": 1,   "y": 5}, { "x": 20,  "y": 20} ], 
-				[ { "x": 50,  "y": 300}, { "x": 60,  "y": 250} ],
+				[ { "x": 50,  "y": 300}, { "x": 300,  "y": 250}, { "x": 100, "y": 100 } ],
 				[ { "x": 100,  "y": 470}, { "x": 200,  "y": 430} ],
 				[ { "x": 40,  "y": 10}, { "x": 60,  "y": 40} ],
 				[ { "x": 300,  "y": 40}, { "x": 400,  "y": 20} ],
@@ -65,10 +65,11 @@ undefined) {
 		return record;
 	},
 
-	simpleRecordList: function() {
+	simpleRecordList: function(records) {
 		var data = this;
 
-		var simpleRecords = _.map(data.get('records'), function(recordData, index) {
+		records = records || data.get('records');
+		var simpleRecords = _.map(records, function(recordData, index) {
 			return { 
 				index: index,
 				spatialObject: recordData.spatialObject
@@ -81,7 +82,9 @@ undefined) {
 	addPointSet: function(pointSet) {
 		var data = this;
 
-		data.addRecord(data.createRecord(pointSet));
+		var record = data.createRecord(pointSet);
+		data.addRecord(record);
+		return record;
 	},
 
 	addRecord: function(record) {
