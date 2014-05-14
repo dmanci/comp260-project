@@ -59,6 +59,7 @@
 						That's where the R-Tree comes in handy...
 					</span>
 				</p>
+				<img src="static/images/rtree.png">
 			</div>
 			<div class='page hidden'>
 				<h2>Introduction</h2>
@@ -92,8 +93,8 @@
 						single record in our database, but only those close to the area we care
 						about!</i>
 					</span>
-					
 				</p>
+				<img src="static/images/boxes.png">
 			</div>
 
 			<div class='page hidden'>
@@ -122,6 +123,7 @@
 					</span>
 					
 				</p>
+				<img src="static/images/boxes2.png">
 			</div>
 			<div class='page hidden'>
 				<h2>A Few R-Tree Details</h2>
@@ -143,6 +145,23 @@
 						(3) The root node must have at least two children, unless it is a leaf.
 					</span>
 				</p>
+			</div>
+			<div class='page hidden'>
+				<h2>A Few R-Tree Details</h2>
+				<p>
+					<span class='question'>
+						Can the boxes overlap?
+					</span>
+					<br><br>
+					<span class='answer'>
+						Yup. In spatial-speak, the R-Tree does not offer disjoint decomposition of
+						the space. In normal-speak, the boxes can overlap, which means we might have
+						to search more than one area to find what we're looking for. This could mean
+						traveling down branches of the tree that won't produce search results.
+					</span>
+				</p>
+				<img src="static/images/disjoint1.png">
+				<img src="static/images/disjoint2.png">
 			</div>
 
 			<div class='page hidden'>
@@ -169,6 +188,10 @@
 						this process for the next node until we get to a leaf.
 					</span>
 				</p>
+				<img src="static/images/insert1.png">
+				<img src="static/images/insert2.png">
+				<img src="static/images/insert3.png">
+				<img src="static/images/insert4.png">
 			</div>
 			<div class='page hidden'>
 				<h2>The Insertion Algorithm</h2>
@@ -183,6 +206,7 @@
 						to make some room by splitting the node into two new ones...
 					</span>
 				</p>
+				<img src="static/images/insert5.png">
 			</div>
 			<div class='page hidden'>
 				<h2>The Insertion Algorithm</h2>
@@ -212,6 +236,8 @@
 						(3) Finally, we can use a linear-time algorithm...
 					</span>
 				</p>
+				<img src="static/images/insert6.png">
+				<img src="static/images/insert7.png">
 			</div>
 			<div class='page hidden'>
 				<h2>The Insertion Algorithm</h2>
@@ -242,6 +268,7 @@
 						nodes.
 					</span>
 				</p>
+				<img src="static/images/insert8.png">
 			</div>
 			<div class='page hidden'>
 				<h2>The Insertion Algorithm</h2>
@@ -292,6 +319,8 @@
 						restaurants with four stars within so-and-so area."
 					</span>
 				</p>
+				<img src="static/images/search1.png">
+				<img src="static/images/search2.png">
 			</div>
 			<div class='page hidden'>
 				<h2>The Search Algorithm</h2>
@@ -334,7 +363,7 @@
 							with sides 100 px in length.<br>
 							To add a polygon, enter the points, in the order you would draw them
 							with a pen, using the form "x1,y1:x2,y2:x3,y3:..."<br>
-							Ex: "0,0:0,100:100,100,100,0" will produce that same box.
+							Ex: "0,0:0,100:100,100:100,0" will produce that same box.
 						</p>
 						<form id='search-form'>
 							Search: <input type='text' id='search'><input type='button'

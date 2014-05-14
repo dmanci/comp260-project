@@ -45,7 +45,19 @@ undefined) {
 					navHTML += "<li class='pageButton'>Demo</li>\n";
 				}
 				else {
-					navHTML += "<li class='pageButton'>Page " + j + "</li>\n";
+					if (i === 0 || i === 1) {
+						navHTML += "<li class='pageButton'>Intro " + j + "</li>\n";
+
+					}
+					else if (i === 2 || i === 3 || i === 4 || i === 5) {
+						navHTML += "<li class='pageButton'>Background " + j + "</li>\n";
+					}
+					else if (i === 6 || i === 7 || i === 8 || i === 9 || i === 10) {
+						navHTML += "<li class='pageButton'>Insert " + j + "</li>\n";
+					}
+					else if (i === 11 || i === 12) {
+						navHTML += "<li class='pageButton'>Search " + j + "</li>\n";
+					}
 				}
 				$(el).data('page-number', j);
 			});
