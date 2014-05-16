@@ -58,6 +58,7 @@ undefined) {
 	insertEntry: function(entry) {
 		var app = this;
 		
+		app.temp = app.temp ? app.temp + 1 : 1;
 		// Find the insertion point.
 		var insertionLeaf = app._chooseLeaf(entry, app.get('root'));
 
@@ -164,6 +165,22 @@ undefined) {
 			remainingEntries: remainingEntries 
 		});
 
+		_.each(node1.entries(), function(entry) {
+			if (entry.isParentEntry()) {
+				var childNode = entry.get('childNode');
+				childNode.parentEntry(entry);
+				childNode.parentNode(node1);
+			}
+		});
+
+		_.each(node2.entries(), function(entry) {
+			if (entry.isParentEntry()) {
+				var childNode = entry.get('childNode');
+				childNode.parentEntry(entry);
+				childNode.parentNode(node2);
+			}
+		});
+
 		return [ node1, node2 ];
 	},
 
@@ -174,11 +191,14 @@ undefined) {
 		var node2 = args.node2;
 		var remainingEntries = args.remainingEntries.slice(0);
 
-		for (var i = 0; remainingEntries.length; i++) {
-			var choice = Math.floor((Math.random() * remainingEntries.length) + 1);
-			var entry = remainingEntries.splice(choice - 1, 1)[0];
+		_.each(remainingEntries, function(entry, i) {
 			!(i % 2) ? node1.addEntry(entry) : node2.addEntry(entry);
-		}
+		});
+//		for (var i = 0; remainingEntries.length; i++) {
+//			var choice = Math.floor((Math.random() * remainingEntries.length) + 1);
+//			var entry = remainingEntries.splice(choice - 1, 1)[0];
+//			!(i % 2) ? node1.addEntry(entry) : node2.addEntry(entry);
+//		}
 
 		return;
 	},

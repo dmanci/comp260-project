@@ -157,9 +157,11 @@ undefined) {
 
 		node.append('text')
 			.attr('dx', function(d) {
-				return d.children ? -8 : 8;
+				return d.children ? -8 : -5;
 			})
-			.attr('dy', 3)
+			.attr('dy', function(d) {
+				return d.children ? 3 : 30;
+			})
 			.attr('text-anchor', function(d) {
 				return d.children ? "end" : "start";
 			})
@@ -200,7 +202,6 @@ undefined) {
 				text = "Entry";
 			}
 		}
-//		text += " - " + node.cid;
 
 		return text;
 	}
